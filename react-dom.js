@@ -21471,6 +21471,7 @@ function commitDeletion(finishedRoot, current, renderPriorityLevel) {
   }
 
   var alternate = current.alternate;
+  // 将此fiber的大部分内容置为null
   detachFiberMutation(current);
 
   if (alternate !== null) {
@@ -21972,7 +21973,7 @@ function scheduleUpdateOnFiber(fiber, lane, eventTime) {
   //根节点要更新，提升lane
   markRootUpdated(root, lane, eventTime);
 
-  // 判断是否在同一组件更新
+  // 判断需要更新的是否已处于更新状态
   // 如果没有deferRenderPhaseUpdateToNextBatch flag而且是在渲染阶段
   // 我们不把他当作交错的，就是说在同一批次
   if (root === workInProgressRoot) {
@@ -21982,7 +21983,7 @@ function scheduleUpdateOnFiber(fiber, lane, eventTime) {
     // phase update. In that case, we don't treat render phase updates as if
     // they were interleaved, for backwards compat reasons.
     {
-      // 表示存在当前的lane，如果是setState的话就是表示有updat
+      // 表示存在当前的lane，如果是setState的话就是表示有update
       workInProgressRootUpdatedLanes = mergeLanes(workInProgressRootUpdatedLanes, lane);
     }
 
@@ -22004,6 +22005,7 @@ function scheduleUpdateOnFiber(fiber, lane, eventTime) {
   if (lane === SyncLane) {
      // 非批量更新 ，且 未进行render 或commit
     if ( // Check if we're inside unbatchedUpdates
+    // 如果已经处于RenderContext或者CommitContext阶段
     (executionContext & LegacyUnbatchedContext) !== NoContext && // Check if we're not already rendering
     (executionContext & (RenderContext | CommitContext)) === NoContext) {
       // Register pending interactions on the root to avoid losing traced interaction data.
@@ -22011,8 +22013,7 @@ function scheduleUpdateOnFiber(fiber, lane, eventTime) {
       schedulePendingInteractions(root, lane); // This is a legacy edge case. The initial mount of a ReactDOM.render-ed
       // root inside of batchedUpdates should be synchronous, but layout updates
       // should be deferred until the end of the batch.
-
-      //执行同步更新
+      // 执行同步更新
       performSyncWorkOnRoot(root);
     } else {
       ensureRootIsScheduled(root, eventTime);
