@@ -1,3 +1,4 @@
+
 class MyPromise {
   state = 'pending'  // pending | onfufilled | onrejected
   value = ''
@@ -68,44 +69,69 @@ class MyPromise {
       })
     })
   }
+  static all() {
+    let promises = [...arguments[0]]
+    let len = promises.length;
+    let list = []
+    return new MyPromise(resolve => {
+      let i = 0;
+      promises.forEach(async item => {
+        let res = await item
+        list.push(res)
+        if (list.length === len) {
+          resolve(list)
+        }
+      })
+    })
+  }
 }
 
-new MyPromise((resolve, reject) => {
-  setTimeout(() => {
-    resolve(123)
-  }, 2000);
-})
-  .then((successCb, errorCb) => {
-    console.log(successCb);
-    return "嘻嘻"
-  })
-  .then(res => {
-    console.log(res);
-    return new MyPromise((resolve, reject) => {
-      resolve('alskdjakldalksd')
-    })
-  })
-  .then(res => {
-    console.log(res);
-  })
+// new MyPromise((resolve, reject) => {
+//   setTimeout(() => {
+//     resolve(123)
+//   }, 2000);
+// })
+//   .then((successCb, errorCb) => {
+//     console.log(successCb);
+//     return "嘻嘻"
+//   })
+//   .then(res => {
+//     console.log(res);
+//     return new MyPromise((resolve, reject) => {
+//       resolve('alskdjakldalksd')
+//     })
+//   })
+//   .then(res => {
+//     console.log(res);
+//   })
 
 var show = function () {
   return MyPromise.resolve(1)
 }
 
-let promise1 = new MyPromise((resolve) => {
-  setTimeout(() => {
-    resolve('我是1000')
-  }, 3000);
-})
-
-let promise2 = new MyPromise((resolve) => {
-  setTimeout(() => {
-    resolve('我是2000')
-  }, 2000);
-})
-
-MyPromise.race([promise1, promise2])
-  .then(res => {
-    console.log(res);
+let promise1 = function () {
+  return new MyPromise((resolve) => {
+    setTimeout(() => {
+      resolve('我是1000')
+    }, 3000);
   })
+}
+
+let promise2 = function () {
+  return new MyPromise((resolve) => {
+    setTimeout(() => {
+      resolve('我是2000')
+    }, 2000);
+  })
+}
+
+// MyPromise.race([promise1, promise2])
+//   .then(res => {
+//     console.log(res);
+//   })
+let res = async function() {
+  let data = await MyPromise.all([promise1(), promise2()])
+  console.log(data);
+}
+
+res()
